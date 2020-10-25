@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XmlToAvroStream {
 
-
     private org.apache.avro.Schema validationErrorSchema;
     private org.apache.avro.Schema deadLetterQueueSchema;
 
@@ -43,24 +42,35 @@ public class XmlToAvroStream {
 
         postValidation.filter((k, v) -> !v.validationSuccessful())
                 .map(this::getValidationErrorRecord)
+                .peek((k, v) -> log.info("publishing to validation-error topic key: {} - value:{}", k, v))
                 .to(properties.getProperty("validation-error-topic"), Produced.valueSerde(genericAvroSerde));
 
         KStream<String, Envelope<String>> postValidationAndTransform = postValidation
                 .mapValues(new StyleMapperSupplier(properties.getProperty("xsl-file")).get());
 
-        postValidationAndTransform.filter((k, v) -> v.success())
-                .mapValues(new AvroMapperSupplier(properties.getProperty("avro-file")).get())
-                .mapValues(Envelope::getValue)
-                .to(properties.getProperty("output-topic"), Produced.valueSerde(genericAvroSerde));
+        KStream<String, Envelope<GenericRecord>> prePublish = postValidationAndTransform.filter((k, v) -> v.success())
+                .mapValues(new AvroMapperSupplier(properties.getProperty("avro-file")).get());
 
         postValidationAndTransform.filter((k, v) -> !v.success())
                 .map(this::getDeadLetterQueueRecord)
+                .peek((k, v) -> log.info("publishing to dead-letter-queue topic key: {} - value:{}", k, v))
+                .to(properties.getProperty("dead-letter-queue"), Produced.valueSerde(genericAvroSerde));
+
+        prePublish
+                .filter((k, v) -> v.success())
+                .mapValues(Envelope::getValue)
+                .peek((k, v) -> log.info("publishing to out-put topic key: {} - value:{}", k, v))
+                .to(properties.getProperty("output-topic"), Produced.valueSerde(genericAvroSerde));
+
+        prePublish.filter((k, v) -> !v.success())
+                .map(this::getDeadLetterQueueRecord)
+                .peek((k, v) -> log.info("publishing to dead-letter-queue topic key: {} - value:{}", k, v))
                 .to(properties.getProperty("dead-letter-queue"), Produced.valueSerde(genericAvroSerde));
 
         return builder.build();
     }
 
-    private KeyValue<String, GenericRecord> getDeadLetterQueueRecord(String k, Envelope<String> v) {
+    private KeyValue<String, GenericRecord> getDeadLetterQueueRecord(String k, Envelope<? extends Object> v) {
         GenericData.Record record = new GenericData.Record(deadLetterQueueSchema);
         record.put("Exception", v.getException().toString());
         record.put("OriginalMessageKey", k);

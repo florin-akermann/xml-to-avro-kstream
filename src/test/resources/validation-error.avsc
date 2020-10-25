@@ -1,9 +1,0 @@
-{
-   "type" : "record",
-   "namespace" : "ch.roboinvest.xml.to.avro.kstream",
-   "name" : "ValidationError",
-   "fields" : [
-      { "name" : "ValidationError" , "type" : "string" },
-      { "name" : "OriginalMessageKey" , "type" : "string" }
-   ]
-}

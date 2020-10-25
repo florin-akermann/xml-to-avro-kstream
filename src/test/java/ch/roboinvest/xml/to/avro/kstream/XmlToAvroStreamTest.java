@@ -38,12 +38,10 @@ public class XmlToAvroStreamTest {
         properties.put("application.id", "xmlToAvroApp");
         properties.put("bootstrap.servers", "mock");
 
-        properties.put("xsd-file", TestUtil.getAbsolutePath("input.xsd"));
-        properties.put("xsl-file",  TestUtil.getAbsolutePath("style.xslt"));
+        properties.put("xsd-file", TestUtil.getAbsolutePath("integration.xsd"));
+        properties.put("xsl-file", TestUtil.getAbsolutePath("integration.xslt"));
         properties.put("avro-file", TestUtil.getAbsolutePath("test.avsc"));
 
-        properties.put("validation-error.avsc", "");
-        properties.put("dead-letter-avro.avsc", "");
 
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -68,12 +66,44 @@ public class XmlToAvroStreamTest {
                 new KafkaAvroDeserializer(schemaRegistryClient)
         );
 
+        final TestOutputTopic<String, Object> dlq = td.createOutputTopic(
+                properties.getProperty("dead-letter-queue"),
+                new StringDeserializer(),
+                new KafkaAvroDeserializer(schemaRegistryClient)
+        );
+
+        final TestOutputTopic<String, Object> validationError = td.createOutputTopic(
+                properties.getProperty("validation-error-topic"),
+                new StringDeserializer(),
+                new KafkaAvroDeserializer(schemaRegistryClient)
+        );
+
         Assertions.assertTrue(outputTopic.isEmpty());
 
-        inputTopic.pipeInput("1", Files.readString(Path.of(TestUtil.getAbsolutePath("input.xml"))));
-        Assertions.assertEquals(outputTopic.readValue(), "{\"bar\":\"test\"}");
+        inputTopic.pipeInput("someId", Files.readString(Path.of(TestUtil.getAbsolutePath("integration.xml"))));
+        Assertions.assertEquals("{\"foo\": \"2\"}", outputTopic.readValue().toString());
+        Assertions.assertTrue(dlq.isEmpty());
+        Assertions.assertTrue(validationError.isEmpty());
 
+        inputTopic.pipeInput("someOtherId", "<!#!thisShouldEndUpIntheValidationErrorQueue+DeadLetterQueue>");
+        Assertions.assertTrue(outputTopic.isEmpty());
+        Assertions.assertEquals(dlqMessage(), dlq.readValue().toString());
+        Assertions.assertEquals(validationMsg(), validationError.readValue().toString());
 
+    }
+
+    private String dlqMessage() {
+        return "{\"Exception\": " +
+                "\"org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 3;" +
+                " The markup in the document preceding the root element must be well-formed.\", " +
+                "\"OriginalMessageKey\": \"someOtherId\"}";
+    };
+
+    private String validationMsg(){
+        return "{\"ValidationError\": " +
+                "\"org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 3;" +
+                " The markup in the document preceding the root element must be well-formed.\", " +
+                "\"OriginalMessageKey\": \"someOtherId\"}";
     }
 
 }

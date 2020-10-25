@@ -35,7 +35,8 @@ public class Envelope<V>{
             return this.withException(throwable);
         }else{
             Envelope<V> copy = withValue(value);
-            return copy.withAdditionalException(throwable);
+            copy.exception.addSuppressed(throwable);
+            return copy;
         }
     }
 

@@ -1,6 +1,7 @@
 package ch.roboinvest.xml.to.avro.kstream.mapper;
 
 import ch.roboinvest.xml.to.avro.kstream.util.Envelope;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.kstream.ValueMapper;
 import org.xml.sax.SAXException;
 
@@ -14,9 +15,10 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.function.Supplier;
 
+@Slf4j
 public class ValidationMapperSupplier implements Supplier<ValueMapper<Envelope<String>, Envelope<String>>> {
 
-    private Validator validator;
+    private final Validator validator;
 
     public ValidationMapperSupplier(String xsdFilePath) {
         validator = createValidator(xsdFilePath);
@@ -34,6 +36,7 @@ public class ValidationMapperSupplier implements Supplier<ValueMapper<Envelope<S
             validator.validate(xmlSource);
             return envelope.withIsValid(true);
         } catch (Exception e) {
+            log.warn("validation-step", e);
             return envelope.withAdditionalException(e);
         }
     }
