@@ -1,0 +1,8 @@
+{
+   "type" : "record",
+   "namespace" : "ch.roboinvest.xml.to.avro.kstream",
+   "name" : "TestRecord",
+   "fields" : [
+      { "name" : "field" , "type" : "string" }
+   ]
+}

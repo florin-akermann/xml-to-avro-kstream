@@ -1,0 +1,9 @@
+{
+   "type" : "record",
+   "namespace" : "ch.roboinvest.xml.to.avro.kstream",
+   "name" : "DeadLetter",
+   "fields" : [
+      { "name" : "Exception" , "type" : "string" },
+      { "name" : "OriginalMessageKey" , "type" : "string" }
+   ]
+}
