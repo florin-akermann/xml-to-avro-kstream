@@ -90,6 +90,7 @@ public class XmlToAvroStreamTest {
         Assertions.assertEquals(dlqMessage(), dlq.readValue().toString());
         Assertions.assertEquals(validationMsg(), validationError.readValue().toString());
 
+        //TODO test case: validation ok, still on dlq - e.g. faulty stylesheet
     }
 
     private String dlqMessage() {
