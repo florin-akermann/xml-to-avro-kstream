@@ -26,10 +26,10 @@ class AvroMapperSupplierTest {
     @Test
     void happyPath() throws IOException, URISyntaxException {
         GenericData.Record expectedRecord = new GenericData.Record(AvroMapperSupplier.getSchema(TestUtil.getAbsolutePath("test.avsc")));
-        expectedRecord.put("field", "someValue");
+        expectedRecord.put("foo", "someValue");
 
         Envelope<GenericRecord> expected = new Envelope<>(expectedRecord);
-        Envelope<GenericRecord> actual = objectUnderTest.apply(new Envelope<>("<main><field>someValue</field></main>"));
+        Envelope<GenericRecord> actual = objectUnderTest.apply(new Envelope<>("<main><foo>someValue</foo></main>"));
 
         Assertions.assertEquals(expected, actual);
     }
@@ -37,10 +37,10 @@ class AvroMapperSupplierTest {
     @Test
     void badInput() throws IOException, URISyntaxException {
         GenericData.Record expectedRecord = new GenericData.Record(AvroMapperSupplier.getSchema(TestUtil.getAbsolutePath("test.avsc")));
-        expectedRecord.put("field", "someOtherVAlue");
+        expectedRecord.put("foo", "someOtherVAlue");
 
         Envelope<GenericRecord> actual0 = objectUnderTest.apply(null);
-        Envelope<GenericRecord> actual1 = objectUnderTest.apply(new Envelope<String>(null));
+        Envelope<GenericRecord> actual1 = objectUnderTest.apply(new Envelope<>(null));
         Envelope<GenericRecord> actual2 = objectUnderTest.apply(new Envelope<>("adf31113"));
 
         Assertions.assertFalse(actual0.isValid());
