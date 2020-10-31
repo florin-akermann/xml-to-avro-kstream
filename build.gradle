@@ -1,6 +1,8 @@
 plugins {
     id 'java'
+    id 'com.google.cloud.tools.jib' version '2.6.0'
 }
+
 
 group 'org.example'
 version '1.0-SNAPSHOT'
@@ -46,4 +48,22 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jib {
+    from {
+        image = 'adoptopenjdk/openjdk11'
+    }
+    to {
+        image = "floak/xml-to-avro-kstream"
+        tags = ["$version", 'latest']
+        auth {
+            username = 'floak'
+            password = file('C:/dhkey.json').text
+        }
+    }
+    container {
+        jvmFlags = ['-Dmy.property=example.value', '-Xms512m', '-Xdebug']
+        mainClass = 'ch.roboinvest.xml.to.avro.kstream.XmlToAvroStream'
+    }
 }
