@@ -1,5 +1,6 @@
 package ch.roboinvest.xml.to.avro.kstream;
 
+import ch.roboinvest.xml.to.avro.kstream.topology.XmlToAvroTopology;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -21,10 +22,10 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
 
-public class XmlToAvroStreamTest {
+public class XmlToAvroTopologyTest {
 
     // A mocked schema registry for our serdes to use
-    private static final String SCHEMA_REGISTRY_SCOPE = XmlToAvroStreamTest.class.getName();
+    private static final String SCHEMA_REGISTRY_SCOPE = XmlToAvroTopologyTest.class.getName();
     private static final String MOCK_SCHEMA_REGISTRY_URL = "mock://" + SCHEMA_REGISTRY_SCOPE;
 
     @Test
@@ -51,7 +52,7 @@ public class XmlToAvroStreamTest {
         genericAvroSerde.configure(Collections.singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, MOCK_SCHEMA_REGISTRY_URL), false);
         SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_SCOPE);
 
-        Topology topology = new XmlToAvroStream().topology(properties, genericAvroSerde);
+        Topology topology = new XmlToAvroTopology().create(properties, genericAvroSerde);
         TopologyTestDriver td = new TopologyTestDriver(topology, properties);
 
         TestInputTopic<String, String> inputTopic = td.createInputTopic(
