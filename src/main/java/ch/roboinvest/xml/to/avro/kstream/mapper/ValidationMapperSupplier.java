@@ -34,10 +34,14 @@ public class ValidationMapperSupplier implements Supplier<ValueMapper<Envelope<S
         try {
             Source xmlSource = new StreamSource(new StringReader(envelope.getValue()));
             validator.validate(xmlSource);
-            return envelope.withIsValid(true);
+            return envelope
+                    .withValidationApplied(true)
+                    .withIsValid(true);
         } catch (Exception e) {
             log.warn("validation-step", e);
-            return envelope.withAdditionalException(e);
+            return envelope
+                    .withAdditionalException(e)
+                    .withValidationApplied(true);
         }
     }
 

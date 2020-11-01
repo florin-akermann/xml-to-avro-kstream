@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
+import lombok.experimental.Accessors;
 
 
 @Data
@@ -18,7 +19,8 @@ public class Envelope<V>{
     private boolean isValid;
 
     @With
-    private boolean hasBeenValidated;
+    @Accessors(fluent = true)
+    private boolean validationApplied;
 
     public Envelope(V value, Exception exception) {
         this.value = value;
@@ -35,7 +37,9 @@ public class Envelope<V>{
             return this.withException(throwable);
         }else{
             Envelope<V> copy = withValue(value);
-            copy.exception.addSuppressed(throwable);
+            if (copy.exception != null) {
+                copy.exception.addSuppressed(throwable);
+            }
             return copy;
         }
     }
@@ -44,12 +48,8 @@ public class Envelope<V>{
         return exception == null;
     }
 
-    public boolean validationSuccessful(){
-        return hasBeenValidated && isValid;
-    }
-
     public Envelope<V> withIsValid(boolean isValid){
         this.isValid = isValid;
-        return this.withHasBeenValidated(true);
+        return this.withValidationApplied(true);
     }
 }

@@ -1,6 +1,6 @@
-package ch.roboinvest.xml.to.avro.kstream;
+package ch.roboinvest.xml.to.avro.kstream.topology;
 
-import ch.roboinvest.xml.to.avro.kstream.topology.XmlToAvroTopology;
+import ch.roboinvest.xml.to.avro.kstream.TestUtil;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -32,7 +32,7 @@ public class XmlToAvroTopologyTest {
     void test() throws IOException, TransformerConfigurationException, URISyntaxException {
 
         Properties properties = new Properties();
-        properties.put("input-topics", "input");
+        properties.put("input-topic", "input");
         properties.put("output-topic", "output");
         properties.put("dead-letter-queue", "dlq");
         properties.put("validation-error-topic", "validation-error-warning");
@@ -108,4 +108,10 @@ public class XmlToAvroTopologyTest {
                 "\"OriginalMessageKey\": \"someOtherId\"}";
     }
 
+    @Test
+    void whenStyleSheetMissingThenAssertThrowsIoException() {
+        Assertions.assertThrows(IOException.class, ()->{
+            new XmlToAvroTopology().create(new Properties(), null);
+        });
+    }
 }
