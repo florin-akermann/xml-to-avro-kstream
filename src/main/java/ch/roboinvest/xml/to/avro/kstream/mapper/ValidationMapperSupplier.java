@@ -49,7 +49,7 @@ public class ValidationMapperSupplier implements Supplier<ValueMapper<Envelope<S
         try {
             File schemaFile = new File(pathname);
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = schemaFactory.newSchema(schemaFile);
+            Schema schema = schemaFactory.newSchkema(schemaFile);
             return schema.newValidator();
         } catch (SAXException e) {
             throw new RuntimeException(e);

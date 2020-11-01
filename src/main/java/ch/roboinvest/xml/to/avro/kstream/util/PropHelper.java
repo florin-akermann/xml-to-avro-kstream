@@ -11,19 +11,22 @@ import java.util.Properties;
 @Slf4j
 public class PropHelper {
 
-    private static List<String> requiredProps = Arrays.asList(
-            "",
-            ""
+    private static final List<String> requiredProps = Arrays.asList(
+            "input-topic",
+            "output-topic",
+            "dead-letter-queue",
+            "xsl-file",
+            "avro-file"
     );
 
     private PropHelper() {
     }
 
     public static Properties loadProps() {
-        Properties props = new Properties();
         try (InputStream input = PropHelper.class.getClassLoader().getResourceAsStream("config.properties")) {
+            Properties props = new Properties();
             if (input == null) {
-                log.warn("properties not found");
+                log.warn("config.properties not found");
             } else {
                 props.load(input);
             }
@@ -36,6 +39,8 @@ public class PropHelper {
     }
 
     public static void validateProps(Properties props) {
-
+        for(String prop: requiredProps){
+            if (!props.containsKey(prop)) throw new IllegalStateException("No property provided fro: " + prop);
+        }
     }
 }

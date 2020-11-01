@@ -52,7 +52,7 @@ public class XmlToAvroTopologyTest {
         genericAvroSerde.configure(Collections.singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, MOCK_SCHEMA_REGISTRY_URL), false);
         SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_SCOPE);
 
-        Topology topology = new XmlToAvroTopology().create(properties, genericAvroSerde);
+        Topology topology = new XmlToAvroTopology().create(properties);
         TopologyTestDriver td = new TopologyTestDriver(topology, properties);
 
         TestInputTopic<String, String> inputTopic = td.createInputTopic(
